@@ -12,12 +12,26 @@ const dbFirestore = admin.firestore();
 const auth = admin.auth();
 
 // MySQL configuration
-const dbMySQL = mysql.createConnection({
+// const dbMySQL = mysql.createConnection({
+//   host: 'localhost',
+//   user: 'root',
+//   password: '',
+//   database: 'bulk_orders_db'
+// });
+
+// MySQL configuration
+const dbMySQL = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: '',
-  database: 'bulk_orders_db'
+  password: 'mysql@pwd#',
+  database: 'bulk_orders_db',
+  port: 3306, // Change if needed
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  connectTimeout: 10000 // 10 seconds
 });
+
 
 dbMySQL.connect(err => {
   if (err) {

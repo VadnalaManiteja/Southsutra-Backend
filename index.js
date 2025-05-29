@@ -6,6 +6,7 @@ const authRoutes = require('./routes/auth');
 const emailRoutes = require('./routes/email');
 const mysqlRoutes = require('./routes/mysql');
 const paymentRoutes = require('./routes/payment');
+const shiprocketRoutes = require('./routes/shiprocket');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ app.use('/', authRoutes);
 app.use('/', emailRoutes);
 app.use('/', mysqlRoutes);
 app.use('/', paymentRoutes);
+app.use('/', shiprocketRoutes);
 
 // Root route
 app.get('/', (req, res) => {

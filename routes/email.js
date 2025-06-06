@@ -105,4 +105,121 @@ router.post('/send-order-confirmation', async (req, res) => {
   }
 });
 
+router.post('/bulk-order', async (req, res) => {
+    const { 
+        full_name, 
+        company_name = '', 
+        email, 
+        phone, 
+        shipping_city = '', 
+        shipping_pincode = '', 
+        additional_message = '', 
+        selectedProducts 
+    } = req.body;
+
+    if (!full_name || !email || !phone) {
+        return res.status(400).json({ 
+            success: false,
+            message: 'Missing required fields' 
+        });
+    }
+
+    try {
+        // 1. Prepare customer email
+      const customerMailOptions = {
+    from: '"SutraCart" <rajeshyanamadala2000@gmail.com>',
+    to: email,
+    subject: 'Thank you for your Bulk Order Inquiry',
+    html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #4a4a4a;">Dear ${full_name},</h2>
+            <p>Thank you for your bulk order inquiry with SutraCart. We've received your request and our team will contact you shortly.</p>
+            
+            <h3 style="color: #4a4a4a; margin-top: 20px;">Your Inquiry Details:</h3>
+            <p><strong>Name:</strong> ${full_name}</p>
+            ${company_name ? `<p><strong>Company:</strong> ${company_name}</p>` : ''}
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone}</p>
+            
+            ${shipping_city || shipping_pincode ? `
+            <h3 style="color: #4a4a4a; margin-top: 20px;">Shipping Information:</h3>
+            ${shipping_city ? `<p><strong>City/Region:</strong> ${shipping_city}</p>` : ''}
+            ${shipping_pincode ? `<p><strong>Pincode:</strong> ${shipping_pincode}</p>` : ''}
+            ` : ''}
+            
+            <h3 style="color: #4a4a4a; margin-top: 20px;">Products Interested In:</h3>
+            <ul>
+                ${selectedProducts.lemon ? '<li>Lemon Rice Gojju</li>' : ''}
+                ${selectedProducts.pulihora ? '<li>Puliyogare Gojju</li>' : ''}
+                ${selectedProducts.sorakaya ? '<li>Vangibath Gojju</li>' : ''}
+                ${selectedProducts.tomato ? '<li>Tomato Rice Gojju</li>' : ''}
+            </ul>
+            
+            ${additional_message ? `
+            <h3 style="color: #4a4a4a; margin-top: 20px;">Your Message:</h3>
+            <p>${additional_message}</p>
+            ` : ''}
+            
+            <p style="margin-top: 30px;">We typically respond within 24 hours. For immediate assistance, please call us at +91 XXXXXXXXXX.</p>
+
+            <div style="margin-top: 30px; text-align: center;">
+                <p style="font-weight: bold;">Join our WhatsApp group for updates and support:</p>
+                <a href="https://chat.whatsapp.com/IEn431tS9Rl21yL5KzwtnS" target="_blank" 
+                   style="display: inline-block; background-color: #25D366; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                    Join WhatsApp Group
+                </a>
+            </div>
+
+            <p style="margin-top: 30px;">Best regards,<br>The SutraCart Team</p>
+        </div>
+    `
+};
+
+
+        // 2. Prepare admin email
+        const adminMailOptions = {
+            from: '"SutraCart Notifications" <rajeshyanamadala2000@gmail.com>',
+            to: adminEmail,
+            subject: `New Bulk Order Inquiry from ${full_name}`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #4a4a4a;">New Bulk Order Inquiry</h2>
+                    <p><strong>Customer Name:</strong> ${full_name}</p>
+                    <p><strong>Email:</strong> ${email}</p>
+                    <p><strong>Phone:</strong> ${phone}</p>
+                    <p><strong>Submitted At:</strong> ${new Date().toLocaleString()}</p>
+                    
+                    <h3 style="color: #4a4a4a; margin-top: 20px;">Products Requested:</h3>
+                    <ul>
+                        ${selectedProducts.lemon ? '<li>Lemon Rice Gojju</li>' : ''}
+                        ${selectedProducts.pulihora ? '<li>Puliyogare Gojju</li>' : ''}
+                        ${selectedProducts.sorakaya ? '<li>Vangibath Gojju</li>' : ''}
+                        ${selectedProducts.tomato ? '<li>Tomato Rice Gojju</li>' : ''}
+                    </ul>
+                    
+                    <p><a href="mailto:${email}?subject=Re: Your Bulk Order Inquiry">Click here to respond</a></p>
+                </div>
+            `
+        };
+
+        // 3. Send both emails
+        await transporter.sendMail(customerMailOptions);
+        await transporter.sendMail(adminMailOptions);
+
+        res.status(200).json({ 
+            success: true, 
+            message: 'Emails sent successfully' 
+        });
+
+    } catch (error) {
+        console.error('Email sending error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Failed to send emails',
+            error: error.message 
+        });
+    }
+});
+
+
 module.exports = router;
